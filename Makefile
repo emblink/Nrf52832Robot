@@ -13,8 +13,8 @@ SRC_FILES += \
   $(PROJ_DIR)/gcc_startup_nrf52.S \
   $(PROJ_DIR)/main.c \
   $(PROJ_DIR)/system_nrf52.c \
-    $(PROJ_DIR)/clock.c \
-
+  $(PROJ_DIR)/clock.c \
+  $(PROJ_DIR)/temp.c \
 
 # Libraries common to all targets
 LIB_FILES += \

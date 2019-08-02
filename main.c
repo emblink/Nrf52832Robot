@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include "clock.h"
+#include "temp.h"
 
 #define GPIO_BASE       (0x50000000U)
 #define GPIO_OUT        *((uint32_t *) (GPIO_BASE + 0x504))
@@ -11,8 +13,15 @@
 #define GPIO_DIR_CLR    *((uint32_t *) (GPIO_BASE + 0x51C))
 #define GPIO_PIN_CNF4   *((uint32_t *) (GPIO_BASE + 0x710))
 
-
 #define LED_PIN (4U)
+
+static uint32_t temperature = 0;
+
+static void tempCallback(uint32_t temp)
+{
+    temperature = temp;
+}
+
 void gpioSetPinState(uint32_t pin, bool state)
 {
     if (state) {
@@ -43,7 +52,11 @@ int main(void)
 {
     clockSetHfClk();
     gpioConfig(LED_PIN);
+    tempCallback(0); // warnings
+    tempSensorStart(NULL);
+    
 	while (1) {
+        temperature = tempSensorGetData();
         gpioSetPinState(LED_PIN, true);
         delay(500);
         gpioSetPinState(LED_PIN, false);
