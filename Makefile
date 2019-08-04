@@ -15,6 +15,7 @@ SRC_FILES += \
   $(PROJ_DIR)/system_nrf52.c \
   $(PROJ_DIR)/clock.c \
   $(PROJ_DIR)/temp.c \
+  $(PROJ_DIR)/timer.c \
 
 # Libraries common to all targets
 LIB_FILES += \

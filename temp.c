@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "temp.h"
+#include "nrf52.h"
 
 #define TEMP_SENS_BASE      (0x4000C000U)
 #define TEMP_TASK_START     *((uint32_t *) (TEMP_SENS_BASE + 0x000))
@@ -20,6 +21,7 @@ void tempSensorStart(tempSensorCallback cb)
     if (cb) {
         callback = cb;
         tempEnableIsr();
+        NVIC_EnableIRQ(TEMP_IRQn);
     } else {
         tempDisableIsr();
     }
@@ -40,7 +42,9 @@ uint32_t tempSensorGetData(void)
 
 void tempSensorStop(void)
 {
+    TEMP_EVENT_DATARDY = 0;
     callback = NULL;
+    NVIC_DisableIRQ(TEMP_IRQn);
     tempDisableIsr();
 }
 
@@ -56,6 +60,7 @@ static void tempDisableIsr(void)
 
 void TEMP_IRQHandler(void)
 {
+    TEMP_EVENT_DATARDY = 0;
     if (callback != NULL) {
         callback((TEMP_DATA_REG * 25) / 100);
     }
