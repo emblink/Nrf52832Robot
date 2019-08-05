@@ -16,6 +16,8 @@ SRC_FILES += \
   $(PROJ_DIR)/clock.c \
   $(PROJ_DIR)/temp.c \
   $(PROJ_DIR)/timer.c \
+  $(PROJ_DIR)/gpio.c \
+  $(PROJ_DIR)/stepMotorDriver.c \
 
 # Libraries common to all targets
 LIB_FILES += \
