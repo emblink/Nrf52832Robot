@@ -2,7 +2,7 @@ PROJECT_NAME     := main
 TARGETS          := nrf52832_xxaa
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := ../nRF5_SDK_15.3.0
+SDK_ROOT := ../nRF5_SDK_16.0.0
 PROJ_DIR := .
 
 $(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \
