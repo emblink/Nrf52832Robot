@@ -8,15 +8,25 @@
 #include "timer.h"
 #include "stepMotorDriver.h"
 
-#define LED_PIN             (4U)
-#define DRIVER_STEP_PIN     (11U)
-#define DRIVER_DIR_PIN      (12U)
-#define DRIVER_RESET_PIN    (13U)
-#define DRIVER_SLEEP_PIN    (14U)
-#define DRIVER_EN_PIN       (15U)
+#define DRIVER_STEP_PIN         25U
+#define DRIVER_DIR_PIN          26U
+#define DRIVER_RESET_PIN        27U
+#define DRIVER_SLEEP_PIN        28U
+#define DRIVER_EN_PIN           29U
+#define DRIVER_MS1              30U
+#define DRIVER_MS2              31U
+#define DRIVER_PFD              2U
+
+#define CLOCKWISE_LED           4U
+#define COUNTERCLOCKWISE_LED    5U
+
+#define BUTTON_STEP_MODE        6U
+#define BUTTON_STEP             7U
+#define BUTTON_DIRECTION        8U
 
 static void tempCallback(uint32_t temp);
 static void onTimerCallback(void);
+static void initPins(void);
 
 static uint32_t temperature = 0;
 
@@ -27,38 +37,57 @@ static void tempCallback(uint32_t temp)
 
 static void onTimerCallback(void)
 {
-    static uint32_t state = 0x01;
-    state ^= 0x01;
-    gpioSetPin(LED_PIN, state == 0x01);
+    static bool state = true;
+    state = !state;
+    gpioSetPin(COUNTERCLOCKWISE_LED, state);
     stepMotorDriverStep();
 }
 
-static GpioConfig pinConfig =  {
-    .dir = GpioOutput,
-    .input = GpioInputConnect,
-    .pull = GpioPullDisabled,
-    .drive = 0,
-    .sence = GpioSenseDisabled
-};
+static void initPins(void)
+{
+    /* Init Outputs */
+    GpioConfig pinConfig =  {
+        .dir = GpioOutput,
+        .input = GpioInputDisconnect,
+        .pull = GpioPullDisabled,
+        .drive = 0,
+        .sence = GpioSenseDisabled
+    };
+
+    gpioConfig(CLOCKWISE_LED, pinConfig);
+    gpioConfig(COUNTERCLOCKWISE_LED, pinConfig);
+
+    /* Init Inputs */
+    pinConfig.dir = GpioInput;
+    pinConfig.input = GpioInputConnect;
+    pinConfig.pull = GpioPullUp;
+
+    gpioConfig(BUTTON_STEP_MODE, pinConfig);
+    gpioConfig(BUTTON_STEP, pinConfig);
+    gpioConfig(BUTTON_DIRECTION, pinConfig);
+}
 
 int main(void)
 {
     clockSetHfClk();
-    gpioConfig(LED_PIN, pinConfig);
+    initPins();
     tempSensorStart(tempCallback);
     timerStart(Timer1, 10, onTimerCallback);
     
-    stepMotorDriverConfig motorDriverConfig = {
-        .enablePin = DRIVER_EN_PIN,
-        .directionPin = DRIVER_DIR_PIN,
-        .resetPin = DRIVER_RESET_PIN,
-        .stepPin = DRIVER_STEP_PIN,
-        .sleepPin = DRIVER_SLEEP_PIN,
+    StepMotorDriverPin driverPins[StepMotorPinCount] = {
+        [StepMotorStepPin] = DRIVER_STEP_PIN,
+        [StepMotorDirectionPin] = DRIVER_DIR_PIN,
+        [StepMotorResetPin] = DRIVER_RESET_PIN,
+        [StepMotorSleepPin] = DRIVER_SLEEP_PIN,
+        [StepMotorEnablePin] = DRIVER_EN_PIN,
+        [StepMotorMs1Pin] = DRIVER_MS1,
+        [StepMotorMs2Pin] = DRIVER_MS2,
+        [StepMotorPfdPin] = DRIVER_PFD,
     };
-    stepMotorDriverInit(motorDriverConfig);
+    stepMotorDriverInit(driverPins, StepMotorHalfMode);
     stepMotorDriverEnable(true);
-    stepMotorDriverSetDir(true);
-    
+    gpioSetPin(CLOCKWISE_LED, true);
+
 	while (1) {
         temperature = tempSensorGetData();
         __WFI();

@@ -4,52 +4,106 @@
 #include "gpio.h"
 #include "stepMotorDriver.h"
 
-static stepMotorDriverConfig driver = {0};
+typedef union {
+    struct {
+        StepMotorDriverPin step;
+        StepMotorDriverPin direction;
+        StepMotorDriverPin reset;
+        StepMotorDriverPin sleep;
+        StepMotorDriverPin enable;
+        StepMotorDriverPin ms1;
+        StepMotorDriverPin ms2;
+        StepMotorDriverPin pfd;
+    };
+    StepMotorDriverPin pin[StepMotorPinCount];
+} driverPins;
 
-void stepMotorDriverInit(stepMotorDriverConfig config)
+static driverPins driver = {0};
+bool isDriverInited = false;
+
+bool stepMotorDriverInit(StepMotorDriverPin pins[StepMotorPinCount], StepMotorDriverMode mode)
 {
-    driver = config;
-    GpioConfig pinConfig = {
+    GpioConfig pinConfig =  {
         .dir = GpioOutput,
-        .input = GpioInputConnect,
+        .input = GpioInputDisconnect,
         .pull = GpioPullDisabled,
         .drive = 0,
         .sence = GpioSenseDisabled
     };
-    for (uint32_t i = 0; i < 5; i++) {
-        gpioConfig(config.pins[i], pinConfig);
+
+    for (uint32_t i = 0; i < StepMotorPinCount; i++) {
+        driver.pin[i] = pins[i];
+        gpioConfig(driver.pin[i], pinConfig);
     }
-		stepMotorDriverSleep(false);
+
+    isDriverInited = true;
+
+    gpioSetPin(driver.reset, false); // hold reset
+    gpioSetPin(driver.step, false); // hold step low for proper transition
+    stepMotorDriverSleep(false); // disable sleep
+    stepMotorDriverEnable(false); // disable outputs
+    gpioSetPin(driver.pfd, true); // have no idea what this doing
     stepMotorDriverReset();
-    gpioSetPin(driver.stepPin, false);
+    stepMotorDriverSetMode(mode);
+    return stepMotorDriverStep();
 }
 
-void stepMotorDriverEnable(bool enable)
+bool stepMotorDriverEnable(bool enable)
 {
-    gpioSetPin(driver.enablePin, !enable);
+    if (!isDriverInited)
+        return false;
+
+    gpioSetPin(driver.enable, !enable);
+    return true;
 }
 
-void stepMotorDriverReset(void)
+bool stepMotorDriverReset(void)
 {
-    gpioSetPin(driver.resetPin, false);
-    gpioSetPin(driver.resetPin, true);
+    if (!isDriverInited)
+        return false;
+
+    gpioSetPin(driver.reset, false);
+    gpioSetPin(driver.reset, true);
+    return true;
 }
 
-void stepMotorDriverSleep(bool enable)
+bool stepMotorDriverSleep(bool enable)
 {
-    gpioSetPin(driver.sleepPin, !enable);
+    if (!isDriverInited)
+        return false;
+
+    gpioSetPin(driver.sleep, !enable);
+    return true;
 }
 
-void stepMotorDriverSetDir(bool direction)
+bool stepMotorDriverSetDir(StepMotorDirection direction)
 {
-    gpioSetPin(driver.directionPin, direction);
+    if (!isDriverInited)
+        return false;
+
+    gpioSetPin(driver.direction, direction);
+    return true;
 }
 
-void stepMotorDriverStep(void)
+bool stepMotorDriverSetMode(StepMotorDriverMode mode)
 {
-    gpioSetPin(driver.stepPin, true);
-    for (uint32_t i = 0; i < 50; i++);
-    gpioSetPin(driver.stepPin, false);
+    if (!isDriverInited)
+        return false;
+
+    gpioSetPin(driver.ms1, mode & 0x02);
+    gpioSetPin(driver.ms2, mode & 0x01);
+    return true;
+}
+
+bool stepMotorDriverStep(void)
+{
+    if (!isDriverInited)
+        return false;
+
+    static bool state = false;
+    gpioSetPin(driver.step, state);
+    state = !state;
+    return true;
 }
 
 

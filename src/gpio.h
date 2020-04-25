@@ -8,7 +8,7 @@ typedef enum {
 
 typedef enum {
     GpioInputConnect = 0U,
-    GpioOutputDisconnect = 1U,
+    GpioInputDisconnect = 1U,
 } GpioInputState;
 
 typedef enum {
