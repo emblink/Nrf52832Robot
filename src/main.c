@@ -121,7 +121,6 @@ int main(void)
     clockSetHfClk();
     initPins();
     tempSensorStart(tempCallback);
-    timerStart(Timer1, 1, onTimerCallback);
 
     pinInterruptInit();
     pinInterruptEnable(BUTTON_STEP_MODE, stepModeCallback, FallingEdge);
@@ -142,6 +141,8 @@ int main(void)
     stepMotorDriverSetDir(StepMotorDirectionForward);
     gpioSetPin(FORWARD_LED, true);
     stepMotorDriverEnable(true);
+
+    timerStart(Timer1, 700, onTimerCallback); // 700 mks is minimum for StepMotorFullMode
 
 	while (1) {
         temperature = tempSensorGetData();
