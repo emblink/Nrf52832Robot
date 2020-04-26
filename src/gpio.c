@@ -24,5 +24,7 @@ void gpioSetPin(uint32_t pin, bool state)
 
 bool gpioReadPin(uint32_t pin)
 {
-    return (((GPIO->IN) & (1 << pin)) == 1);
+    if (GPIO->DIRSET & (1 << pin)) // pin set as output
+        return (GPIO->OUTSET & (1 << pin)); // Read: pin driver is high or low
+    return (((GPIO->IN) & (1 << pin)) == 1); // pin set as input otherwise
 }

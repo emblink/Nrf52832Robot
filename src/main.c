@@ -7,6 +7,7 @@
 #include "temp.h"
 #include "timer.h"
 #include "stepMotorDriver.h"
+#include "pinInterrupt.h"
 
 #define DRIVER_STEP_PIN         25U
 #define DRIVER_DIR_PIN          26U
@@ -17,13 +18,14 @@
 #define DRIVER_MS2              31U
 #define DRIVER_PFD              2U
 
-#define CLOCKWISE_LED           4U
-#define COUNTERCLOCKWISE_LED    5U
+#define FORWARD_LED             4U
+#define BACKWARD_LED            5U
 
 #define BUTTON_STEP_MODE        6U
-#define BUTTON_STEP             7U
+#define BUTTON_ON_OFF           7U
 #define BUTTON_DIRECTION        8U
 
+static StepMotorDirection direction = StepMotorDirectionForward;
 static void tempCallback(uint32_t temp);
 static void onTimerCallback(void);
 static void initPins(void);
@@ -37,10 +39,57 @@ static void tempCallback(uint32_t temp)
 
 static void onTimerCallback(void)
 {
-    static bool state = true;
-    state = !state;
-    gpioSetPin(COUNTERCLOCKWISE_LED, state);
     stepMotorDriverStep();
+}
+
+/* Button Callbacks */
+static void stepModeCallback(void)
+{
+    StepMotorDriverMode mode = StepMotorEighthModeCount;
+    stepMotorDriverGetMode(&mode);
+
+    switch(mode) {
+    case StepMotorFullMode:
+        stepMotorDriverSetMode(StepMotorHalfMode);
+        break;
+    case StepMotorHalfMode:
+        stepMotorDriverSetMode(StepMotorQuaterMode);
+        break;
+    case StepMotorQuaterMode:
+        stepMotorDriverSetMode(StepMotorEighthMode);
+        break;
+    case StepMotorEighthMode:
+        stepMotorDriverSetMode(StepMotorFullMode);
+        break;
+    case StepMotorEighthModeCount:
+        // stop?
+        break;
+    default:
+        break;
+    }
+}
+
+static void onOffCallback(void)
+{
+    static bool enable = false;
+    stepMotorDriverEnable(enable);
+    enable = !enable;
+}
+
+static void directionCallback(void)
+{
+    StepMotorDirection dir;
+    stepMotorDriverGetDir(&dir);
+
+    if (dir == StepMotorDirectionForward) {
+        stepMotorDriverSetDir(StepMotorDirectionBackward);
+        gpioSetPin(FORWARD_LED, false);
+        gpioSetPin(BACKWARD_LED, true);
+    } else {
+        stepMotorDriverSetDir(StepMotorDirectionForward);
+        gpioSetPin(FORWARD_LED, true);
+        gpioSetPin(BACKWARD_LED, false);
+    }
 }
 
 static void initPins(void)
@@ -54,8 +103,8 @@ static void initPins(void)
         .sence = GpioSenseDisabled
     };
 
-    gpioConfig(CLOCKWISE_LED, pinConfig);
-    gpioConfig(COUNTERCLOCKWISE_LED, pinConfig);
+    gpioConfig(FORWARD_LED, pinConfig);
+    gpioConfig(BACKWARD_LED, pinConfig);
 
     /* Init Inputs */
     pinConfig.dir = GpioInput;
@@ -63,7 +112,7 @@ static void initPins(void)
     pinConfig.pull = GpioPullUp;
 
     gpioConfig(BUTTON_STEP_MODE, pinConfig);
-    gpioConfig(BUTTON_STEP, pinConfig);
+    gpioConfig(BUTTON_ON_OFF, pinConfig);
     gpioConfig(BUTTON_DIRECTION, pinConfig);
 }
 
@@ -72,8 +121,13 @@ int main(void)
     clockSetHfClk();
     initPins();
     tempSensorStart(tempCallback);
-    timerStart(Timer1, 10, onTimerCallback);
-    
+    timerStart(Timer1, 1, onTimerCallback);
+
+    pinInterruptInit();
+    pinInterruptEnable(BUTTON_STEP_MODE, stepModeCallback, FallingEdge);
+    pinInterruptEnable(BUTTON_ON_OFF, onOffCallback, FallingEdge);
+    pinInterruptEnable(BUTTON_DIRECTION, directionCallback, FallingEdge);
+
     StepMotorDriverPin driverPins[StepMotorPinCount] = {
         [StepMotorStepPin] = DRIVER_STEP_PIN,
         [StepMotorDirectionPin] = DRIVER_DIR_PIN,
@@ -84,9 +138,10 @@ int main(void)
         [StepMotorMs2Pin] = DRIVER_MS2,
         [StepMotorPfdPin] = DRIVER_PFD,
     };
-    stepMotorDriverInit(driverPins, StepMotorHalfMode);
+    stepMotorDriverInit(driverPins, StepMotorFullMode);
+    stepMotorDriverSetDir(StepMotorDirectionForward);
+    gpioSetPin(FORWARD_LED, true);
     stepMotorDriverEnable(true);
-    gpioSetPin(CLOCKWISE_LED, true);
 
 	while (1) {
         temperature = tempSensorGetData();

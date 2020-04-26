@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define DIRECTION_INVERT (0)
+
 typedef enum driverMode {
     StepMotorFullMode = 0U,
     StepMotorHalfMode = 2U,
@@ -10,7 +12,7 @@ typedef enum driverMode {
 } StepMotorDriverMode;
 
 typedef enum motorDirection {
-    StepMotorDirectionForward,
+    StepMotorDirectionForward = 0U,
     StepMotorDirectionBackward,
 } StepMotorDirection;
 
@@ -31,5 +33,7 @@ bool stepMotorDriverEnable(bool enable);
 bool stepMotorDriverReset(void);
 bool stepMotorDriverSleep(bool sleep);
 bool stepMotorDriverSetDir(StepMotorDirection direction);
+bool stepMotorDriverGetDir(StepMotorDirection *dir);
 bool stepMotorDriverSetMode(StepMotorDriverMode mode);
+bool stepMotorDriverGetMode(StepMotorDriverMode *mode);
 bool stepMotorDriverStep(void);

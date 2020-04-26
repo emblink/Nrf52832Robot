@@ -1,6 +1,10 @@
 {
     "C_Cpp.default.configurationProvider": "go2sh.cmake-integration",
     "files.associations": {
-        "stepmotordriver.h": "c"
+        "stepmotordriver.h": "c",
+        "nrf.h": "c",
+        "nrf52.h": "c",
+        "nrf52_bitfields.h": "c",
+        "pininterrupt.h": "c"
     }
 }
