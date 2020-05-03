@@ -39,3 +39,4 @@ typedef union GpioConfig {
 void gpioSetPin(uint32_t pin, bool state);
 bool gpioReadPin(uint32_t pin);
 void gpioConfig(uint32_t gpioNumber, GpioConfig config);
+void gpioTogglePin(uint32_t pin);

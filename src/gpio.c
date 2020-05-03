@@ -28,3 +28,8 @@ bool gpioReadPin(uint32_t pin)
         return (GPIO->OUTSET & (1 << pin)); // Read: pin driver is high or low
     return (((GPIO->IN) & (1 << pin)) == 1); // pin set as input otherwise
 }
+
+void gpioTogglePin(uint32_t pin)
+{
+    GPIO->OUT ^= (1 << pin);
+}

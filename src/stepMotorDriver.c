@@ -138,9 +138,7 @@ bool stepMotorDriverStep(void)
     if (!isDriverInited)
         return false;
 
-    static bool state = false;
-    gpioSetPin(driver.step, state);
-    state = !state;
+    gpioTogglePin(driver.step);
     return true;
 }
 

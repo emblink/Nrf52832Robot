@@ -120,7 +120,7 @@ static void initPins(void)
 int main(void)
 {
     clockSetHfClk();
-    sysTickInit();
+    sysTickInit(SysTickPeriodMilisecond, NULL);
     initPins();
     tempSensorStart(tempCallback);
 
@@ -144,7 +144,7 @@ int main(void)
     gpioSetPin(FORWARD_LED, true);
     stepMotorDriverEnable(true);
 
-    timerStart(Timer1, 700, onTimerCallback); // 700 mks is minimum for StepMotorFullMode
+    timerStart(Timer1, 800, onTimerCallback); // 700 mks is minimum for StepMotorFullMode
 
 	while (1) {
         temperature = tempSensorGetData();
