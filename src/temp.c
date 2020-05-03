@@ -21,11 +21,10 @@ void tempSensorStart(tempSensorCallback cb)
     if (cb) {
         callback = cb;
         tempEnableIsr();
-        NVIC_EnableIRQ(TEMP_IRQn);
     } else {
         tempDisableIsr();
     }
-    TEMP_TASK_START |= 0x01;
+    TEMP_TASK_START = 0x01;
 }
 
 uint32_t tempSensorGetData(void)
@@ -36,7 +35,7 @@ uint32_t tempSensorGetData(void)
     while(!TEMP_EVENT_DATARDY);
     uint32_t temp = TEMP_DATA_REG * 25 / 100;
     TEMP_EVENT_DATARDY = 0;
-    TEMP_TASK_START |= 0x01;
+    TEMP_TASK_START = 0x01;
     return temp;
 }
 
@@ -44,18 +43,20 @@ void tempSensorStop(void)
 {
     TEMP_EVENT_DATARDY = 0;
     callback = NULL;
-    NVIC_DisableIRQ(TEMP_IRQn);
     tempDisableIsr();
 }
 
 static void tempEnableIsr(void)
 {
-    TEMP_INTENSET |= (1 << 0);
+    TEMP_INTENSET = (1 << 0);
+    NVIC_ClearPendingIRQ(TEMP_IRQn);
+    NVIC_EnableIRQ(TEMP_IRQn);
 }
 
 static void tempDisableIsr(void)
 {
-    TEMP_INTENCLR |= (1 << 0);
+    NVIC_DisableIRQ(TEMP_IRQn);
+    TEMP_INTENCLR = (1 << 0);
 }
 
 void TEMP_IRQHandler(void)
@@ -64,5 +65,5 @@ void TEMP_IRQHandler(void)
     if (callback != NULL) {
         callback((TEMP_DATA_REG * 25) / 100);
     }
-    TEMP_TASK_START |= 0x01;
+    TEMP_TASK_START = 0x01;
 }
