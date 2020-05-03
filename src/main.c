@@ -8,6 +8,7 @@
 #include "timer.h"
 #include "stepMotorDriver.h"
 #include "pinInterrupt.h"
+#include "systemTime.h"
 
 #define DRIVER_STEP_PIN         25U
 #define DRIVER_DIR_PIN          26U
@@ -119,6 +120,7 @@ static void initPins(void)
 int main(void)
 {
     clockSetHfClk();
+    sysTickInit();
     initPins();
     tempSensorStart(tempCallback);
 

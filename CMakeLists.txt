@@ -24,6 +24,7 @@ set(APP_SRCS
     src/timer.c
     src/stepMotorDriver.c
     src/pinInterrupt.c
+    src/systemTime.c
 )
 
 set(SDK_SRCS
