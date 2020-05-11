@@ -23,6 +23,17 @@ typedef enum {
     GpioSenseLow = 3U,
 } GpioSense;
 
+typedef enum {
+    GpioDriveS0S1 = 0U,
+    GpioDriveH0S1,
+    GpioDriveS0H1,
+    GpioDriveH0H1,
+    GpioDriveD0S1,
+    GpioDriveD0H1,
+    GpioDriveS0D1,
+    GpioDriveH0D1,
+} GpioDrive;
+
 typedef union GpioConfig {
     struct {
         uint8_t dir : 1;

@@ -7,6 +7,7 @@ project("NRF_Robot" ${LANGUAGES})
 
 add_definitions(
     -DNRF52832_XXAA
+    -DCONFIG_NFCT_PINS_AS_GPIOS
     -DCONFIG_GPIO_AS_PINRESET
     -DFLOAT_ABI_HARD
 )
@@ -25,6 +26,7 @@ set(APP_SRCS
     src/stepMotorDriver.c
     src/pinInterrupt.c
     src/systemTime.c
+    src/twim.c
 )
 
 set(SDK_SRCS

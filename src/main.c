@@ -9,6 +9,7 @@
 #include "stepMotorDriver.h"
 #include "pinInterrupt.h"
 #include "systemTime.h"
+#include "twim.h"
 
 #define DRIVER_STEP_PIN         25U
 #define DRIVER_DIR_PIN          26U
@@ -19,6 +20,7 @@
 #define DRIVER_MS2              31U
 #define DRIVER_PFD              2U
 
+#define APP_LED                 3U
 #define FORWARD_LED             4U
 #define BACKWARD_LED            5U
 
@@ -26,10 +28,17 @@
 #define BUTTON_ON_OFF           7U
 #define BUTTON_DIRECTION        8U
 
+// pins 9 and 10 by default used by nfc, define CONFIG_NFCT_PINS_AS_GPIOS set them as gpios.
+#define TWIM_SDA_PIN            9U
+#define TWIM_SCL_PIN            10U
+
+static uint8_t twimTx[TWIM_WRITE_BUFF_SIZE] = {0};
+static uint8_t twimRx[TWIM_READ_BUFF_SIZE] = {0};
 static StepMotorDirection direction = StepMotorDirectionForward;
 static void tempCallback(uint32_t temp);
 static void onTimerCallback(void);
 static void initPins(void);
+static void twimCallback(TwimError err);
 
 static uint32_t temperature = 0;
 
@@ -75,6 +84,7 @@ static void onOffCallback(void)
     static bool enable = false;
     stepMotorDriverEnable(enable);
     enable = !enable;
+    gpioTogglePin(APP_LED);
 }
 
 static void directionCallback(void)
@@ -100,12 +110,13 @@ static void initPins(void)
         .dir = GpioOutput,
         .input = GpioInputDisconnect,
         .pull = GpioPullDisabled,
-        .drive = 0,
+        .drive = GpioDriveS0S1,
         .sence = GpioSenseDisabled
     };
 
     gpioConfig(FORWARD_LED, pinConfig);
     gpioConfig(BACKWARD_LED, pinConfig);
+    gpioConfig(APP_LED, pinConfig);
 
     /* Init Inputs */
     pinConfig.dir = GpioInput;
@@ -115,6 +126,11 @@ static void initPins(void)
     gpioConfig(BUTTON_STEP_MODE, pinConfig);
     gpioConfig(BUTTON_ON_OFF, pinConfig);
     gpioConfig(BUTTON_DIRECTION, pinConfig);
+}
+
+static void twimCallback(TwimError err)
+{
+
 }
 
 int main(void)
@@ -144,10 +160,28 @@ int main(void)
     gpioSetPin(FORWARD_LED, true);
     stepMotorDriverEnable(true);
 
-    timerStart(Timer1, 800, onTimerCallback); // 700 mks is minimum for StepMotorFullMode
+    twimInit(TWIM_SDA_PIN, TWIM_SCL_PIN, twimCallback);
+    static uint8_t tx[] = {0xAC, 0, 1, 2, 3, 4, 5, 6};
+    twimWrite(0x68, tx, sizeof(tx));
+    __asm("BKPT #255");
+    timerStart(Timer1, 1000, onTimerCallback); // 700 mks is minimum for StepMotorFullMode
 
+    /* exact gear ratio is in fact 63.68395:1, which results in approximately 4076
+       steps per full revolution (in half step mode). */
+    // #define STEPS_PER_ROTATION (4076U) // 
 	while (1) {
-        temperature = tempSensorGetData();
         __WFI();
+        // delay(500);
+        // stepMotorDriverSetDir(StepMotorDirectionForward);
+        // for (uint32_t i = 0; i < STEPS_PER_ROTATION; i++) {
+        //     stepMotorDriverStep();
+        //     delay(1);
+        // }
+        // stepMotorDriverSetDir(StepMotorDirectionBackward);
+        // delay(500);
+        // for (uint32_t i = 0; i < STEPS_PER_ROTATION; i++) {
+        //     stepMotorDriverStep();
+        //     delay(1);
+        // }
 	}
 }
