@@ -163,7 +163,7 @@ int main(void)
     twimInit(TWIM_SDA_PIN, TWIM_SCL_PIN, twimCallback);
     static uint8_t tx[] = {0xAC, 0, 1, 2, 3, 4, 5, 6};
     twimWrite(0x68, tx, sizeof(tx));
-    __asm("BKPT #255");
+    // __asm("BKPT #255");
     timerStart(Timer1, 1000, onTimerCallback); // 700 mks is minimum for StepMotorFullMode
 
     /* exact gear ratio is in fact 63.68395:1, which results in approximately 4076

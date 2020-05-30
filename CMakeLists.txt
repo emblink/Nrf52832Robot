@@ -27,6 +27,7 @@ set(APP_SRCS
     src/pinInterrupt.c
     src/systemTime.c
     src/twim.c
+    src/mpu9250.c
 )
 
 set(SDK_SRCS
