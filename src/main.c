@@ -9,7 +9,7 @@
 #include "stepMotorDriver.h"
 #include "pinInterrupt.h"
 #include "systemTime.h"
-#include "twim.h"
+#include "mpu9250.h"
 
 #define DRIVER_STEP_PIN         25U
 #define DRIVER_DIR_PIN          26U
@@ -28,17 +28,10 @@
 #define BUTTON_ON_OFF           7U
 #define BUTTON_DIRECTION        8U
 
-// pins 9 and 10 by default used by nfc, define CONFIG_NFCT_PINS_AS_GPIOS set them as gpios.
-#define TWIM_SDA_PIN            9U
-#define TWIM_SCL_PIN            10U
-
-static uint8_t twimTx[TWIM_WRITE_BUFF_SIZE] = {0};
-static uint8_t twimRx[TWIM_READ_BUFF_SIZE] = {0};
 static StepMotorDirection direction = StepMotorDirectionForward;
 static void tempCallback(uint32_t temp);
 static void onTimerCallback(void);
 static void initPins(void);
-static void twimCallback(TwimError err);
 
 static uint32_t temperature = 0;
 
@@ -128,11 +121,6 @@ static void initPins(void)
     gpioConfig(BUTTON_DIRECTION, pinConfig);
 }
 
-static void twimCallback(TwimError err)
-{
-
-}
-
 int main(void)
 {
     clockSetHfClk();
@@ -160,11 +148,8 @@ int main(void)
     gpioSetPin(FORWARD_LED, true);
     stepMotorDriverEnable(true);
 
-    twimInit(TWIM_SDA_PIN, TWIM_SCL_PIN, twimCallback);
-    static uint8_t tx[] = {0xAC, 0, 1, 2, 3, 4, 5, 6};
-    twimWrite(0x68, tx, sizeof(tx));
-    // __asm("BKPT #255");
     timerStart(Timer1, 1000, onTimerCallback); // 700 mks is minimum for StepMotorFullMode
+    mpu9250Init();
 
     /* exact gear ratio is in fact 63.68395:1, which results in approximately 4076
        steps per full revolution (in half step mode). */

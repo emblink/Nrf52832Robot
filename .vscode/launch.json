@@ -13,7 +13,8 @@
             "servertype": "jlink",
             "serverpath": "C:/Program Files (x86)/SEGGER/JLink/JLinkGDBServerCL.exe",
             "device": "nRF52832_xxAA",
-            "serialNumber": "59104218", //if you have more than one J-Link probe add the serial number here
+            // "serialNumber": "59104218", //if you have more than one J-Link probe add the serial number here
+            "serialNumber": "788529266", //if you have more than one J-Link probe add the serial number here
             "svdFile": "${workspaceRoot}/nrf52.svd",
             "runToMain": true,
         },
@@ -26,7 +27,8 @@
             "servertype": "jlink",
             "serverpath": "C:/Program Files (x86)/SEGGER/JLink/JLinkGDBServerCL.exe",
             "device": "nRF52832_xxAA",
-            "serialNumber": "59104218", //if you have more than one J-Link probe add the serial number here
+            // "serialNumber": "59104218", //if you have more than one J-Link probe add the serial number here
+            "serialNumber": "788529266", //if you have more than one J-Link probe add the serial number here
             "svdFile": "${workspaceRoot}/nrf52.svd",
         }
     ]
