@@ -10,6 +10,7 @@
 #include "pinInterrupt.h"
 #include "systemTime.h"
 #include "mpu9250.h"
+#include "SEGGER_RTT.h"
 
 #define DRIVER_STEP_PIN         25U
 #define DRIVER_DIR_PIN          26U
@@ -42,33 +43,40 @@ static void tempCallback(uint32_t temp)
 
 static void onTimerCallback(void)
 {
-    stepMotorDriverStep();
+
 }
 
 /* Button Callbacks */
 static void stepModeCallback(void)
 {
-    StepMotorDriverMode mode = StepMotorEighthModeCount;
-    stepMotorDriverGetMode(&mode);
+    StepMotorDriverMode mode = (stepMotorDriverGetMode() + 1) % StepMotorModeCount;
+    char *modeMsg[] = {
+        "StepMotorFullMode",
+        "StepMotorHalfMode",
+        "StepMotorQuaterMode",
+        "StepMotorEighthMode",
+        "StepMotorModeCount",
+    };
+    SEGGER_RTT_printf(0, "%s\n", modeMsg[mode]);
+}
 
-    switch(mode) {
+static uint32_t getStepCount(void)
+{
+    switch (stepMotorDriverGetMode()) {
     case StepMotorFullMode:
-        stepMotorDriverSetMode(StepMotorHalfMode);
-        break;
+        return 4;
+
     case StepMotorHalfMode:
-        stepMotorDriverSetMode(StepMotorQuaterMode);
-        break;
+        return 8;
+
     case StepMotorQuaterMode:
-        stepMotorDriverSetMode(StepMotorEighthMode);
-        break;
+        return 16;
+
     case StepMotorEighthMode:
-        stepMotorDriverSetMode(StepMotorFullMode);
-        break;
-    case StepMotorEighthModeCount:
-        // stop?
-        break;
+        return 32;
+    
     default:
-        break;
+        return 0;
     }
 }
 
@@ -78,21 +86,23 @@ static void onOffCallback(void)
     stepMotorDriverEnable(enable);
     enable = !enable;
     gpioTogglePin(APP_LED);
+    SEGGER_RTT_printf(0, "Driver %s\n", enable ? "enabled" : "disabled");
 }
 
 static void directionCallback(void)
 {
-    StepMotorDirection dir;
-    stepMotorDriverGetDir(&dir);
+    StepMotorDirection dir = stepMotorDriverGetDir();
 
     if (dir == StepMotorDirectionForward) {
         stepMotorDriverSetDir(StepMotorDirectionBackward);
         gpioSetPin(FORWARD_LED, false);
         gpioSetPin(BACKWARD_LED, true);
+        SEGGER_RTT_printf(0, "Direction backward\n");
     } else {
         stepMotorDriverSetDir(StepMotorDirectionForward);
         gpioSetPin(FORWARD_LED, true);
         gpioSetPin(BACKWARD_LED, false);
+        SEGGER_RTT_printf(0, "Direction forward\n");
     }
 }
 
@@ -125,6 +135,8 @@ int main(void)
 {
     clockSetHfClk();
     sysTickInit(SysTickPeriodMilisecond, NULL);
+    SEGGER_RTT_ConfigUpBuffer(0, NULL, NULL, 0, SEGGER_RTT_MODE_NO_BLOCK_SKIP);
+    SEGGER_RTT_WriteString(0, "SEGGER Real-Time-Terminal Sample\r\n");
     initPins();
     tempSensorStart(tempCallback);
 
@@ -143,30 +155,47 @@ int main(void)
         [StepMotorMs2Pin] = DRIVER_MS2,
         [StepMotorPfdPin] = DRIVER_PFD,
     };
-    stepMotorDriverInit(driverPins, StepMotorFullMode);
+    stepMotorDriverInit(driverPins);
+    stepMotorDriverSetMode(StepMotorFullMode);
     stepMotorDriverSetDir(StepMotorDirectionForward);
     gpioSetPin(FORWARD_LED, true);
     stepMotorDriverEnable(true);
 
-    timerStart(Timer1, 1000, onTimerCallback); // 700 mks is minimum for StepMotorFullMode
-    mpu9250Init();
+    // timerStart(Timer1, 1000, onTimerCallback); // 700 mks is minimum for StepMotorFullMode
+    // mpu9250Init();
 
-    /* exact gear ratio is in fact 63.68395:1, which results in approximately 4076
-       steps per full revolution (in half step mode). */
-    // #define STEPS_PER_ROTATION (4076U) // 
+    #define STEPS_PER_ROTATION (4076U) // 
+    AllSensorsData data = {0};
 	while (1) {
-        __WFI();
-        // delay(500);
-        // stepMotorDriverSetDir(StepMotorDirectionForward);
-        // for (uint32_t i = 0; i < STEPS_PER_ROTATION; i++) {
-        //     stepMotorDriverStep();
-        //     delay(1);
+        // __WFI();
+        // if (mpu9250DataReady()) {
+        //     mpu9250ReadAllSensors(&data);
+        //     SEGGER_RTT_printf(0, "\nAccel: x = %d y = %d z = %d\nTemp: t = %d\nGyro: x = %d y = %d z = %d\n",
+        //     data.accel.x, data.accel.y, data.accel.z, data.temp.t,
+        //     data.gyro.x, data.gyro.y, data.gyro.z
+        //     );
         // }
-        // stepMotorDriverSetDir(StepMotorDirectionBackward);
-        // delay(500);
-        // for (uint32_t i = 0; i < STEPS_PER_ROTATION; i++) {
-        //     stepMotorDriverStep();
-        //     delay(1);
-        // }
+
+        /* exact gear ratio is in fact 63.68395:1, which results in approximately 4076
+        steps per full revolution (in half step mode). */
+
+        /* To turn driver for 5.625°,  phase periods need to be done.
+        Each phase period reqiers few steps depending on driver step mode aka StepMotorFullMode 4, StepMotorHalfMode 8 etc.
+        So to make an full turn is StepMotorFullMode driver need to generate 64 periods * 8 steps = 512 steps*/
+
+        // uint32_t tickMs = getCurrentTick();
+        for (uint32_t i = 0; i < 512; i++) {
+            uint32_t steps = getStepCount();
+            for (uint32_t i = 0; i < steps; i++) {
+                gpioSetPin(DRIVER_STEP_PIN, true);
+                delayUs(900);
+                gpioSetPin(DRIVER_STEP_PIN, false);
+                delayUs(900);
+            }
+        }
+        // SEGGER_RTT_printf(0, "Full turn, rpm = %u\n", (60U * 1000) / (getCurrentTick() - tickMs));
+        stepMotorDriverSetDir(stepMotorDriverGetDir() == StepMotorDirectionForward ?
+                              StepMotorDirectionBackward : StepMotorDirectionForward);
+        delayMs(1000);
 	}
 }

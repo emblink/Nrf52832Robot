@@ -5,10 +5,10 @@
 
 typedef enum driverMode {
     StepMotorFullMode = 0U,
-    StepMotorHalfMode = 2U,
-    StepMotorQuaterMode = 1U,
-    StepMotorEighthMode = 3U,
-    StepMotorEighthModeCount = 4U,
+    StepMotorHalfMode,
+    StepMotorQuaterMode,
+    StepMotorEighthMode,
+    StepMotorModeCount,
 } StepMotorDriverMode;
 
 typedef enum motorDirection {
@@ -28,12 +28,12 @@ typedef enum driverPins {
     StepMotorPinCount,
 } StepMotorDriverPin;
 
-bool stepMotorDriverInit(StepMotorDriverPin pins[StepMotorPinCount], StepMotorDriverMode mode);
-bool stepMotorDriverEnable(bool enable);
-bool stepMotorDriverReset(void);
-bool stepMotorDriverSleep(bool sleep);
-bool stepMotorDriverSetDir(StepMotorDirection direction);
-bool stepMotorDriverGetDir(StepMotorDirection *dir);
-bool stepMotorDriverSetMode(StepMotorDriverMode mode);
-bool stepMotorDriverGetMode(StepMotorDriverMode *mode);
-bool stepMotorDriverStep(void);
+void stepMotorDriverInit(StepMotorDriverPin pins[StepMotorPinCount]);
+void stepMotorDriverEnable(bool enable);
+void stepMotorDriverReset(void);
+void stepMotorDriverSleep(bool sleep);
+void stepMotorDriverSetDir(StepMotorDirection direction);
+StepMotorDirection stepMotorDriverGetDir(void);
+void stepMotorDriverSetMode(StepMotorDriverMode mode);
+StepMotorDriverMode stepMotorDriverGetMode(void);
+void stepMotorDriverStep(bool state);

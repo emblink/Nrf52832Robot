@@ -8,6 +8,8 @@ static sysTickCallback sysTickcb = NULL;
 
 void sysTickInit(SysTickPeriod period, sysTickCallback callback)
 {
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk; /* Enable DWT */
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk; /* Enable CPU cycle counter */
     NVIC_DisableIRQ(SysTick_IRQn);
     timeTick = 0;
     sysTickcb = callback;
@@ -34,10 +36,20 @@ void sysTickStart(void)
     SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
 }
 
-void delay(uint32_t period)
+void delayMs(uint32_t periodMs)
 {
     uint32_t currentTick = getCurrentTick();
-    while(getCurrentTick() - currentTick < period) {
+    while(getCurrentTick() - currentTick < periodMs) {
+        // blocking delay
+    }
+}
+
+void delayUs(uint32_t periodUs)
+{
+    // assume frequency is 64Mhz
+    uint32_t currentCycle = DWT->CYCCNT;
+    uint32_t cycleDelay = periodUs * 64;
+    while (DWT->CYCCNT - currentCycle < cycleDelay) {
         // blocking delay
     }
 }

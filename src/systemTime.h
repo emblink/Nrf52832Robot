@@ -11,5 +11,6 @@ typedef void (*sysTickCallback)(void);
 void sysTickInit(SysTickPeriod period, sysTickCallback callback);
 void sysTickStop(void);
 void sysTickStart(void);
-void delay(uint32_t period);
+void delayMs(uint32_t periodMs);
+void delayUs(uint32_t periodUs);
 uint32_t getCurrentTick(void);

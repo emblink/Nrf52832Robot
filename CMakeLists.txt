@@ -15,6 +15,7 @@ add_definitions(
 set(APP_INCLUDES
     system
     src
+    SEGGER_RTT/RTT
 )
 
 set(APP_SRCS
@@ -35,6 +36,16 @@ set(SDK_SRCS
     system/gcc_startup_nrf52.S
 )
 
+add_library(SEGGER_RTT STATIC
+	SEGGER_RTT/RTT/SEGGER_RTT.c
+    SEGGER_RTT/RTT/SEGGER_RTT_printf.c
+)
+
+target_compile_options(SEGGER_RTT
+	PRIVATE
+    -Os
+)
+
 set(LINKER_SCRIPT
     -T${PROJECT_SOURCE_DIR}/linker/nrf52832_xxab.ld
 )
@@ -44,7 +55,7 @@ set(LINK_DIRS
 )
 
 set(LINK_LIBS
-
+    SEGGER_RTT
 )
 
 include_directories(${APP_INCLUDES})

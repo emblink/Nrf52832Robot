@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <assert.h>
 #include "gpio.h"
 #include "stepMotorDriver.h"
 
@@ -19,9 +20,9 @@ typedef union {
 } driverPins;
 
 static driverPins driver = {0};
-bool isDriverInited = false;
+static bool isDriverInited = false;
 
-bool stepMotorDriverInit(StepMotorDriverPin pins[StepMotorPinCount], StepMotorDriverMode mode)
+void stepMotorDriverInit(StepMotorDriverPin pins[StepMotorPinCount])
 {
     GpioConfig pinConfig =  {
         .dir = GpioOutput,
@@ -44,41 +45,33 @@ bool stepMotorDriverInit(StepMotorDriverPin pins[StepMotorPinCount], StepMotorDr
     stepMotorDriverEnable(false); // disable outputs
     gpioSetPin(driver.pfd, true); // have no idea what this doing
     stepMotorDriverReset();
-    return stepMotorDriverSetMode(mode);
 }
 
-bool stepMotorDriverEnable(bool enable)
+void stepMotorDriverEnable(bool enable)
 {
-    if (!isDriverInited)
-        return false;
+    assert(isDriverInited);
 
     gpioSetPin(driver.enable, !enable);
-    return true;
 }
 
-bool stepMotorDriverReset(void)
+void stepMotorDriverReset(void)
 {
-    if (!isDriverInited)
-        return false;
+    assert(isDriverInited);
 
     gpioSetPin(driver.reset, false);
     gpioSetPin(driver.reset, true);
-    return true;
 }
 
-bool stepMotorDriverSleep(bool enable)
+void stepMotorDriverSleep(bool enable)
 {
-    if (!isDriverInited)
-        return false;
+    assert(isDriverInited);
 
     gpioSetPin(driver.sleep, !enable);
-    return true;
 }
 
-bool stepMotorDriverSetDir(StepMotorDirection direction)
+void stepMotorDriverSetDir(StepMotorDirection direction)
 {
-    if (!isDriverInited)
-        return false;
+    assert(isDriverInited);
 
     #if defined DIRECTION_INVERT && DIRECTION_INVERT > 0
         direction = direction == StepMotorDirectionForward ? 
@@ -88,13 +81,11 @@ bool stepMotorDriverSetDir(StepMotorDirection direction)
     gpioSetPin(driver.direction,
                direction == StepMotorDirectionForward ? 
                true : false);
-    return true;
 }
 
-bool stepMotorDriverGetDir(StepMotorDirection *dir)
+StepMotorDirection stepMotorDriverGetDir(void)
 {
-    if (!isDriverInited || dir == NULL)
-        return false;
+    assert(isDriverInited);
 
     StepMotorDirection direction;
     if (gpioReadPin(driver.direction)) {
@@ -108,38 +99,80 @@ bool stepMotorDriverGetDir(StepMotorDirection *dir)
                   StepMotorDirectionBackward : StepMotorDirectionForward;
     #endif // DIRECTION_INVERT
 
-    *dir = direction;
-    return true;
+    return direction;
 }
 
-bool stepMotorDriverSetMode(StepMotorDriverMode mode)
+void stepMotorDriverSetMode(StepMotorDriverMode mode)
 {
-    if (!isDriverInited)
-        return false;
+    assert(isDriverInited);
+    assert(mode < StepMotorModeCount);
 
-    gpioSetPin(driver.ms1, mode & 0x02);
-    gpioSetPin(driver.ms2, mode & 0x01);
-    return true;
+    // MS1 MS2 Resolution
+    //  L   L  Full step (2 phase)
+    //  H   L  Half step
+    //  L   H  Quarter step
+    //  H   H  Eighth step
+
+    switch (mode) {
+    case StepMotorFullMode:
+        gpioSetPin(driver.ms1, false);
+        gpioSetPin(driver.ms2, false);
+        break;
+
+    case StepMotorHalfMode:
+        gpioSetPin(driver.ms1, true);
+        gpioSetPin(driver.ms2, false);
+        break;
+    
+    case StepMotorQuaterMode:
+        gpioSetPin(driver.ms1, false);
+        gpioSetPin(driver.ms2, true);
+        break;
+
+    case StepMotorEighthMode:
+        gpioSetPin(driver.ms1, true);
+        gpioSetPin(driver.ms2, true);
+        break;
+    }
 }
 
-bool stepMotorDriverGetMode(StepMotorDriverMode *mode)
+StepMotorDriverMode stepMotorDriverGetMode(void)
 {
-    if (!isDriverInited || mode == NULL)
-        return false;
+    assert(isDriverInited);
 
     uint8_t ms1 = gpioReadPin(driver.ms1);
     uint8_t ms2 = gpioReadPin(driver.ms2);
-    *mode = (ms2 | (ms1 << 1));
-    return true;
+    uint8_t state = (ms1 | (ms2 << 1));
+
+    // MS1 MS2 Resolution
+    //  L   L  Full step (2 phase)
+    //  H   L  Half step
+    //  L   H  Quarter step
+    //  H   H  Eighth step
+
+    switch (state) {
+    case 0x00:
+        return StepMotorFullMode;
+
+    case 0x01:
+        return StepMotorHalfMode;
+    
+    case 0x02:
+        return StepMotorQuaterMode;
+
+    case 0x03:
+        return StepMotorEighthMode;
+
+    default:
+        return StepMotorModeCount;
+    }
 }
 
-bool stepMotorDriverStep(void)
+void stepMotorDriverStep(bool state)
 {
-    if (!isDriverInited)
-        return false;
+    assert(isDriverInited);
 
-    gpioTogglePin(driver.step);
-    return true;
+    gpioSetPin(driver.step, state);
 }
 
 
