@@ -43,7 +43,7 @@ static void tempCallback(uint32_t temp)
 
 static void onTimerCallback(void)
 {
-
+    gpioTogglePin(DRIVER_STEP_PIN);
 }
 
 /* Button Callbacks */
@@ -84,9 +84,9 @@ static uint32_t getStepCount(void)
 static void onOffCallback(void)
 {
     static bool enable = false;
-    stepMotorDriverEnable(enable);
     enable = !enable;
-    gpioTogglePin(APP_LED);
+    stepMotorDriverEnable(enable);
+    gpioSetPin(APP_LED, enable);
     SEGGER_RTT_printf(0, "Driver %s\n", enable ? "enabled" : "disabled");
 }
 
@@ -188,10 +188,10 @@ int main(void)
         for (uint32_t i = 0; i < 512; i++) {
             uint32_t steps = getStepCount();
             for (uint32_t i = 0; i < steps; i++) {
-                gpioSetPin(DRIVER_STEP_PIN, true);
-                delayUs(900);
-                gpioSetPin(DRIVER_STEP_PIN, false);
-                delayUs(900);
+                stepMotorDriverStep(true);
+                delayUs(800);
+                stepMotorDriverStep(false);
+                delayUs(800);
             }
         }
         // SEGGER_RTT_printf(0, "Full turn, rpm = %u\n", (60U * 1000) / (getCurrentTick() - tickMs));
