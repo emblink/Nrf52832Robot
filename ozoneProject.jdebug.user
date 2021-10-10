@@ -1,0 +1,32 @@
+
+OpenDocument="ozoneProject.jdebug", FilePath="F:/Programming/NordicProjects/Nrf52832Robot/ozoneProject.jdebug", Line=9
+OpenDocument="main.c", FilePath="F:/Programming/NordicProjects/Nrf52832Robot/src/main.c", Line=153
+OpenDocument="core_cm4.h", FilePath="F:/Programming/NordicProjects/Nrf52832Robot/system/core_cm4.h", Line=1620
+OpenDocument="systemTime.c", FilePath="F:/Programming/NordicProjects/Nrf52832Robot/src/systemTime.c", Line=36
+OpenDocument="twim.c", FilePath="F:/Programming/NordicProjects/Nrf52832Robot/src/twim.c", Line=63
+OpenDocument="gcc_startup_nrf52.S", FilePath="F:/Programming/NordicProjects/Nrf52832Robot/system/gcc_startup_nrf52.S", Line=220
+OpenDocument="system_nrf52.c", FilePath="F:/Programming/NordicProjects/Nrf52832Robot/system/system_nrf52.c", Line=0
+OpenDocument="stepMotorDriver.c", FilePath="F:/Programming/NordicProjects/Nrf52832Robot/src/stepMotorDriver.c", Line=113
+OpenDocument="temp.c", FilePath="F:/Programming/NordicProjects/Nrf52832Robot/src/temp.c", Line=36
+OpenToolbar="Debug", Floating=0, x=0, y=0
+OpenWindow="Call Stack", DockArea=BOTTOM, x=3, y=0, w=427, h=336, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Registers 1", DockArea=RIGHT, x=0, y=0, w=501, h=589, TabPos=0, TopOfStack=0, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, FilteredItems=[], RefreshRate=1
+OpenWindow="Source Files", DockArea=LEFT, x=0, y=2, w=449, h=179, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Disassembly", DockArea=RIGHT, x=0, y=0, w=501, h=589, TabPos=1, TopOfStack=1, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Break & Tracepoints", DockArea=LEFT, x=0, y=1, w=449, h=179, TabPos=1, TopOfStack=0, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, VectorCatchIndexMask=254
+OpenWindow="Watched Data 1", DockArea=BOTTOM, x=1, y=0, w=241, h=336, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Instruction Trace", DockArea=LEFT, x=0, y=0, w=449, h=229, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Terminal", DockArea=BOTTOM, x=2, y=0, w=328, h=336, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Console", DockArea=BOTTOM, x=0, y=0, w=921, h=336, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="RTOS", DockArea=LEFT, x=0, y=1, w=449, h=179, TabPos=0, TopOfStack=1, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, Showing=""
+TableHeader="Registers 1", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Description"], ColWidths=[238;265;259]
+TableHeader="Vector Catches", SortCol="None", SortOrder="ASCENDING", VisibleCols=["";"Vector Catch";"Description"], ColWidths=[50;300;500]
+TableHeader="Break & Tracepoints", SortCol="None", SortOrder="DESCENDING", VisibleCols=["";"Type";"Location";"Extras"], ColWidths=[55;56;146;192]
+TableHeader="Call Stack", SortCol="Function", SortOrder="ASCENDING", VisibleCols=["Function";"Stack Frame";"Source";"PC";"Return Address";"Stack Used"], ColWidths=[303;160;132;83;91;100]
+TableHeader="Source Files", SortCol="File", SortOrder="DESCENDING", VisibleCols=["File";"Status";"Size";"#Insts";"Path"], ColWidths=[258;62;56;57;100]
+TableHeader="Power Sampling", SortCol="Index", SortOrder="ASCENDING", VisibleCols=["Index";"Time";"Ch 0"], ColWidths=[100;100;100]
+TableHeader="Watched Data 1", SortCol="Expression", SortOrder="ASCENDING", VisibleCols=["Expression";"Value";"Location";"Refresh"], ColWidths=[133;312;110;100]
+TableHeader="RegisterSelectionDialog", SortCol="None", SortOrder="ASCENDING", VisibleCols=[], ColWidths=[]
+WatchedExpression="currentCycle", Window=Watched Data 1
+WatchedExpression="cycleDelay", Window=Watched Data 1
+WatchedExpression="DWT->CYCCNT", Window=Watched Data 1
