@@ -50,6 +50,7 @@ static void onTimerCallback(void)
 static void stepModeCallback(void)
 {
     StepMotorDriverMode mode = (stepMotorDriverGetMode() + 1) % StepMotorModeCount;
+    stepMotorDriverSetMode(mode);
     char *modeMsg[] = {
         "StepMotorFullMode",
         "StepMotorHalfMode",
